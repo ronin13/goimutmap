@@ -13,4 +13,10 @@ This library provides:
 1) A lockless Golang map implementing the Context interface. 
 2) An immutable map built on top of 1).
 
+Supports: (with similar semantics as that of golang map)
+
+a) Add
+b) Exists
+c) Delete
+
 TODO: Add more documentation.
