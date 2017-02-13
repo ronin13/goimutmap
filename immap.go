@@ -2,7 +2,6 @@ package immap
 
 import (
 	"context"
-	"fmt"
 	"github.com/pkg/errors"
 )
 
@@ -22,28 +21,50 @@ func (imap *ImMap) Stop() {
 	<-imap.done
 }
 
+type IntfMap map[interface{}]interface{}
+
 // RunLoop is the ImMapper's map requests processing loop.
 func (imap *ImMap) RunLoop() {
 
-	pages := make(map[interface{}]interface{})
+	pageList := make([]IntfMap, 0)
+	var counter int
+	var added bool
+
 	for {
 		select {
 		case <-imap.Done():
 			imap.done <- struct{}{}
 			return
 		case adder := <-imap.addChan:
-			if _, exists := pages[adder.key]; exists {
-				adder.ret <- fmt.Errorf("key exists")
-				continue
+
+			added = false
+			for counter = 0; counter <= len(pageList)-1; counter++ {
+				pages := pageList[counter]
+				if _, exists := pages[adder.key]; !exists {
+					pages[adder.key] = adder.value
+					adder.ret <- nil
+					added = true
+					break
+				}
 			}
-			pages[adder.key] = adder.value
-			adder.ret <- nil
+			if added == false {
+				pageList = append(pageList, make(map[interface{}]interface{}))
+				pageList[len(pageList)-1][adder.key] = adder.value
+				adder.ret <- nil
+			}
 		case checker := <-imap.checkChan:
-			if value, exists := pages[checker.key]; exists {
-				checker.ret <- value
-			} else {
+			counter = 0
+			for counter = len(pageList) - 1; counter >= 0; counter-- {
+				pages := pageList[counter]
+				if value, exists := pages[checker.key]; exists {
+					checker.ret <- value
+					break
+				}
+			}
+			if counter < 0 {
 				checker.ret <- nil
 			}
+
 		}
 	}
 
