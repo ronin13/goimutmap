@@ -20,7 +20,7 @@ func TestAddExists(t *testing.T) {
 	var err error
 	var ok bool
 
-	mapper := NewImMapper(context.Background())
+	mapper := NewcontextMapper(context.Background())
 	defer mapper.Stop()
 
 	for _, kv := range testIntfs {
@@ -34,6 +34,10 @@ func TestAddExists(t *testing.T) {
 		if _, ok = mapper.Exists(kv.key); !ok {
 			t.Fatal("Key addition failed, does not exist")
 		}
+	}
+
+	for _, kv := range testIntfs {
+		mapper.Delete(kv.key)
 	}
 }
 
@@ -56,5 +60,9 @@ func TestAddExistsImut(t *testing.T) {
 		if _, ok, _ = mapper.Exists(kv.key); !ok {
 			t.Fatal("Key addition failed, does not exist")
 		}
+	}
+
+	for _, kv := range testIntfs {
+		mapper.Delete(kv.key)
 	}
 }

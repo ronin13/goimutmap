@@ -4,43 +4,44 @@ import (
 	"context"
 )
 
-type ImMap struct {
+type baseMap struct {
 	context.Context
-	addChan   chan *ImPack
-	checkChan chan *ImPack
+	addChan   chan *mapPack
+	checkChan chan *mapPack
+	delChan   chan *mapPack
 	done      chan struct{}
 	stopMap   context.CancelFunc
 }
 
-type ImutMap struct {
-	context.Context
-	addChan   chan *ImPack
-	checkChan chan *ImPack
-	done      chan struct{}
-	stopMap   context.CancelFunc
-}
+type contextMap baseMap
 
-type retMap struct {
+type ImutMap baseMap
+
+type retPack struct {
 	value  interface{}
 	mapRef IntfMap
 }
 
-type ImPack struct {
+type mapPack struct {
 	key, value interface{}
-	ret        chan retMap
+	ret        chan retPack
 }
 
-// ImMapper implements the lockless map interface for use by crawler.
-type ImMapper interface {
+type Stopper interface {
+	Stop()
+}
+
+// contextMapper implements the lockless map interface.
+type contextMapper interface {
 	Exists(interface{}) (interface{}, bool)
 	Add(interface{}, interface{}) error
-	Stop()
-	// Delete
+	Stopper
+	Delete(interface{})
 }
 
 type ImutMapper interface {
 	Exists(interface{}) (interface{}, bool, IntfMap)
 	Add(interface{}, interface{}) (IntfMap, error)
-	Stop()
-	// Delete
+	Stopper
+	Delete(interface{})
 }

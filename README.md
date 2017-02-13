@@ -7,8 +7,10 @@
 
 
 # goimutmap
-A lockless Golang map implementing the Context interface. 
 
-TODO: Some sort of immutability.
+This library provides:
 
-Code: WIP (Work in Progress)
+1) A lockless Golang map implementing the Context interface. 
+2) An immutable map built on top of 1).
+
+TODO: Add more documentation.
