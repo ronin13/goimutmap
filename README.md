@@ -1,6 +1,6 @@
 # goimutmap
-An immutable lockless Golang map
+A lockless Golang map implementing the Context interface. 
 
-Also implements the Context interface. 
+TODO: Some sort of immutability.
 
-Code: coming soon!
+Code: WIP (Work in Progress)
