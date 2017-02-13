@@ -2,7 +2,10 @@ package immap
 
 import (
 	"context"
+	"math/rand"
+	"sync"
 	"testing"
+	"time"
 )
 
 var testIntfs = []struct {
@@ -65,4 +68,76 @@ func TestAddExistsImut(t *testing.T) {
 	for _, kv := range testIntfs {
 		mapper.Delete(kv.key)
 	}
+}
+
+func TestAddExistsConc(t *testing.T) {
+
+	var err error
+	var ok bool
+	var wg sync.WaitGroup
+
+	mapper := NewcontextMapper(context.Background())
+	defer mapper.Stop()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for ind, kv := range [100]struct{}{} {
+			time.Sleep(time.Duration(rand.Intn(10)) * time.Millisecond)
+			err = mapper.Add(ind, kv)
+			if err != nil {
+				t.Fatal("Addition failed")
+			}
+		}
+	}()
+
+	wg.Add(1)
+	time.Sleep(2 * time.Second)
+	go func() {
+		defer wg.Done()
+		for ind, _ := range [100]struct{}{} {
+			time.Sleep(time.Duration(rand.Intn(50)) * time.Millisecond)
+			if _, ok = mapper.Exists(ind); !ok {
+				t.Fatal("Key addition failed, does not exist")
+			}
+		}
+	}()
+
+	wg.Wait()
+}
+
+func TestAddExistsImutConc(t *testing.T) {
+
+	var err error
+	var ok bool
+	var wg sync.WaitGroup
+
+	mapper := NewImutMapper(context.Background())
+	defer mapper.Stop()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for ind, kv := range [100]struct{}{} {
+			time.Sleep(time.Duration(rand.Intn(10)) * time.Millisecond)
+			_, err = mapper.Add(ind, kv)
+			if err != nil {
+				t.Fatal("Addition failed")
+			}
+		}
+	}()
+
+	wg.Add(1)
+	time.Sleep(2 * time.Second)
+	go func() {
+		defer wg.Done()
+		for ind, _ := range [100]struct{}{} {
+			time.Sleep(time.Duration(rand.Intn(50)) * time.Millisecond)
+			if _, ok, _ = mapper.Exists(ind); !ok {
+				t.Fatal("Key addition failed, does not exist")
+			}
+		}
+	}()
+
+	wg.Wait()
 }
