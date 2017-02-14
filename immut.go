@@ -17,8 +17,6 @@ func NewImutMapper(ctx context.Context) (ImutMapper, context.CancelFunc) {
 	return retPack, terminate
 }
 
-type IntfMap map[interface{}]interface{}
-
 // RunLoop is the ImutMapper's map requests processing loop.
 func (imap *ImutMap) runLoop() {
 

@@ -18,7 +18,7 @@ func NewcontextMapper(ctx context.Context) (contextMapper, context.CancelFunc) {
 // RunLoop is the contextMapper's map requests processing loop.
 func (imap *contextMap) runLoop() {
 
-	pages := make(map[interface{}]interface{})
+	pages := make(IntfMap)
 	for {
 		select {
 		case <-imap.Done():

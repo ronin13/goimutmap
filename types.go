@@ -4,6 +4,8 @@ import (
 	"context"
 )
 
+type IntfMap map[interface{}]interface{}
+
 type baseMap struct {
 	context.Context
 	addChan   chan *mapPack
