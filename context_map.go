@@ -7,29 +7,21 @@ import (
 )
 
 // NewcontextMapper returns a new instance of implementing contextMapper interface.
-func NewcontextMapper(ctx context.Context) contextMapper {
+func NewcontextMapper(ctx context.Context) (contextMapper, context.CancelFunc) {
 	canCtx, terminate := context.WithCancel(ctx)
-	cPack := &contextMap{canCtx, make(chan *mapPack, 1), make(chan *mapPack, 1), make(chan *mapPack, 1), make(chan struct{}, 1), nil}
+	cPack := &contextMap{canCtx, make(chan *mapPack, 1), make(chan *mapPack, 1), make(chan *mapPack, 1)}
 
-	cPack.stopMap = terminate
-
-	go cPack.RunLoop()
-	return cPack
-}
-
-func (imap *contextMap) Stop() {
-	imap.stopMap()
-	<-imap.done
+	go cPack.runLoop()
+	return cPack, terminate
 }
 
 // RunLoop is the contextMapper's map requests processing loop.
-func (imap *contextMap) RunLoop() {
+func (imap *contextMap) runLoop() {
 
 	pages := make(map[interface{}]interface{})
 	for {
 		select {
 		case <-imap.Done():
-			imap.done <- struct{}{}
 			return
 		case adder := <-imap.addChan:
 			if _, exists := pages[adder.key]; exists {

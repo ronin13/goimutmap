@@ -9,25 +9,18 @@ const (
 )
 
 // NewImutMapper returns a new instance of implementing ImutMapper interface.
-func NewImutMapper(ctx context.Context) ImutMapper {
+func NewImutMapper(ctx context.Context) (ImutMapper, context.CancelFunc) {
 	canCtx, terminate := context.WithCancel(ctx)
-	retPack := &ImutMap{canCtx, make(chan *mapPack, 1), make(chan *mapPack, 1), make(chan *mapPack, 1), make(chan struct{}, 1), nil}
+	retPack := &ImutMap{canCtx, make(chan *mapPack, 1), make(chan *mapPack, 1), make(chan *mapPack, 1)}
 
-	retPack.stopMap = terminate
-
-	go retPack.RunImLoop()
-	return retPack
+	go retPack.runLoop()
+	return retPack, terminate
 }
 
 type IntfMap map[interface{}]interface{}
 
-func (imap *ImutMap) Stop() {
-	imap.stopMap()
-	<-imap.done
-}
-
 // RunLoop is the ImutMapper's map requests processing loop.
-func (imap *ImutMap) RunImLoop() {
+func (imap *ImutMap) runLoop() {
 
 	pageList := make([]IntfMap, 0)
 	var added bool
@@ -36,7 +29,6 @@ func (imap *ImutMap) RunImLoop() {
 		added = false
 		select {
 		case <-imap.Done():
-			imap.done <- struct{}{}
 			return
 		case adder := <-imap.addChan:
 

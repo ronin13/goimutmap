@@ -23,8 +23,8 @@ func TestAddExists(t *testing.T) {
 	var err error
 	var ok bool
 
-	mapper := NewcontextMapper(context.Background())
-	defer mapper.Stop()
+	mapper, cFunc := NewcontextMapper(context.Background())
+	defer cFunc()
 
 	for _, kv := range testIntfs {
 		err = mapper.Add(kv.key, kv.value)
@@ -49,8 +49,8 @@ func TestAddExistsImut(t *testing.T) {
 	var err error
 	var ok bool
 
-	mapper := NewImutMapper(context.Background())
-	defer mapper.Stop()
+	mapper, cFunc := NewImutMapper(context.Background())
+	defer cFunc()
 
 	for _, kv := range testIntfs {
 		_, err = mapper.Add(kv.key, kv.value)
@@ -76,8 +76,8 @@ func TestAddExistsConc(t *testing.T) {
 	var ok bool
 	var wg sync.WaitGroup
 
-	mapper := NewcontextMapper(context.Background())
-	defer mapper.Stop()
+	mapper, cFunc := NewcontextMapper(context.Background())
+	defer cFunc()
 
 	wg.Add(1)
 	go func() {
@@ -112,8 +112,8 @@ func TestAddExistsImutConc(t *testing.T) {
 	var ok bool
 	var wg sync.WaitGroup
 
-	mapper := NewImutMapper(context.Background())
-	defer mapper.Stop()
+	mapper, cFunc := NewImutMapper(context.Background())
+	defer cFunc()
 
 	wg.Add(1)
 	go func() {

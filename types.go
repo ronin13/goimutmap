@@ -9,8 +9,6 @@ type baseMap struct {
 	addChan   chan *mapPack
 	checkChan chan *mapPack
 	delChan   chan *mapPack
-	done      chan struct{}
-	stopMap   context.CancelFunc
 }
 
 type contextMap baseMap
@@ -27,21 +25,15 @@ type mapPack struct {
 	ret        chan retPack
 }
 
-type Stopper interface {
-	Stop()
-}
-
 // contextMapper implements the lockless map interface.
 type contextMapper interface {
 	Exists(interface{}) (interface{}, bool)
 	Add(interface{}, interface{}) error
-	Stopper
 	Delete(interface{})
 }
 
 type ImutMapper interface {
 	Exists(interface{}) (interface{}, bool, IntfMap)
 	Add(interface{}, interface{}) (IntfMap, error)
-	Stopper
 	Delete(interface{})
 }
