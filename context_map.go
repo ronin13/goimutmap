@@ -2,14 +2,12 @@ package immap
 
 import (
 	"context"
-	"fmt"
-	"github.com/pkg/errors"
 )
 
 // NewcontextMapper returns a new instance of implementing contextMapper interface.
 func NewcontextMapper(ctx context.Context) (contextMapper, context.CancelFunc) {
 	canCtx, terminate := context.WithCancel(ctx)
-	cPack := &contextMap{canCtx, make(chan *mapPack, 1), make(chan *mapPack, 1), make(chan *mapPack, 1)}
+	cPack := &contextMap{canCtx, make(chan *mapPack, 1)}
 
 	go cPack.runLoop()
 	return cPack, terminate
@@ -23,22 +21,25 @@ func (imap *contextMap) runLoop() {
 		select {
 		case <-imap.Done():
 			return
-		case adder := <-imap.addChan:
-			if _, exists := pages[adder.key]; exists {
-				adder.ret <- retPack{fmt.Errorf("key exists"), nil}
-				continue
+		case opMsg := <-imap.cChan:
+			switch opMsg.op {
+			case ADD_KEY:
+				if value, exists := pages[opMsg.key]; exists {
+					opMsg.ret <- retPack{value, nil}
+				} else {
+					pages[opMsg.key] = opMsg.value
+					opMsg.ret <- retPack{nil, nil}
+				}
+			case CHECK_KEY:
+				if value, exists := pages[opMsg.key]; exists {
+					opMsg.ret <- retPack{value, nil}
+				} else {
+					opMsg.ret <- retPack{nil, nil}
+				}
+			case DEL_KEY:
+				delete(pages, opMsg.key)
+				opMsg.ret <- retPack{nil, nil}
 			}
-			pages[adder.key] = adder.value
-			adder.ret <- retPack{nil, nil}
-		case checker := <-imap.checkChan:
-			if value, exists := pages[checker.key]; exists {
-				checker.ret <- retPack{value, nil}
-			} else {
-				checker.ret <- retPack{nil, nil}
-			}
-		case deler := <-imap.delChan:
-			delete(pages, deler.key)
-			deler.ret <- retPack{nil, nil}
 
 		}
 	}
@@ -46,26 +47,18 @@ func (imap *contextMap) runLoop() {
 }
 
 // Add method allows one to add new keys.
-// Returns error.
-func (imap *contextMap) Add(key, value interface{}) error {
-	iPack := &mapPack{key, value, make(chan retPack, 1)}
-	imap.addChan <- iPack
+func (imap *contextMap) Add(key, value interface{}) interface{} {
+	iPack := &mapPack{ADD_KEY, key, value, make(chan retPack, 1)}
+	imap.cChan <- iPack
 
 	val := <-iPack.ret
-	if val.value == nil {
-		return nil
-
-	}
-	if erval, ok := val.value.(error); ok {
-		return errors.Wrap(erval, "Key Addition failed")
-	}
-	panic("panic in Add")
+	return val.value
 }
 
 // Exists method allows to check and return the key.
 func (imap *contextMap) Exists(key interface{}) (interface{}, bool) {
-	iPack := &mapPack{key, nil, make(chan retPack, 1)}
-	imap.checkChan <- iPack
+	iPack := &mapPack{CHECK_KEY, key, nil, make(chan retPack, 1)}
+	imap.cChan <- iPack
 	val := <-iPack.ret
 
 	if val.value == nil {
@@ -75,7 +68,7 @@ func (imap *contextMap) Exists(key interface{}) (interface{}, bool) {
 }
 
 func (imap *contextMap) Delete(key interface{}) {
-	iPack := &mapPack{key, nil, make(chan retPack, 1)}
-	imap.checkChan <- iPack
+	iPack := &mapPack{DEL_KEY, key, nil, make(chan retPack, 1)}
+	imap.cChan <- iPack
 	_ = <-iPack.ret
 }

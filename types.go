@@ -4,13 +4,19 @@ import (
 	"context"
 )
 
+type OperType int
+
+const (
+	ADD_KEY OperType = iota
+	CHECK_KEY
+	DEL_KEY
+)
+
 type IntfMap map[interface{}]interface{}
 
 type baseMap struct {
 	context.Context
-	addChan   chan *mapPack
-	checkChan chan *mapPack
-	delChan   chan *mapPack
+	cChan chan *mapPack
 }
 
 type contextMap baseMap
@@ -23,6 +29,7 @@ type retPack struct {
 }
 
 type mapPack struct {
+	op         OperType
 	key, value interface{}
 	ret        chan retPack
 }
@@ -30,7 +37,7 @@ type mapPack struct {
 // contextMapper implements the lockless map interface.
 type contextMapper interface {
 	Exists(interface{}) (interface{}, bool)
-	Add(interface{}, interface{}) error
+	Add(interface{}, interface{}) interface{}
 	Delete(interface{})
 }
 
