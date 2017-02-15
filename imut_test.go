@@ -22,17 +22,13 @@ var testmIntfs = []struct {
 
 func TestAddExistsImut(t *testing.T) {
 
-	var err error
 	var ok bool
 
 	mapper, cFunc := NewImutMapper(context.Background())
 	defer cFunc()
 
 	for _, kv := range testmIntfs {
-		_, err = mapper.Add(kv.key, kv.value)
-		if err != nil {
-			t.Fatal("Addition failed")
-		}
+		mapper.Add(kv.key, kv.value)
 	}
 
 	for _, kv := range testmIntfs {
@@ -48,7 +44,6 @@ func TestAddExistsImut(t *testing.T) {
 
 func TestAddExistsImutConc(t *testing.T) {
 
-	var err error
 	var ok bool
 	var wg sync.WaitGroup
 
@@ -60,10 +55,7 @@ func TestAddExistsImutConc(t *testing.T) {
 		defer wg.Done()
 		for ind, kv := range [100]struct{}{} {
 			time.Sleep(time.Duration(rand.Intn(10)) * time.Millisecond)
-			_, err = mapper.Add(ind, kv)
-			if err != nil {
-				t.Fatal("Addition failed")
-			}
+			mapper.Add(ind, kv)
 		}
 	}()
 
@@ -91,7 +83,6 @@ func randGenChan(rchan chan int, count, limit int) {
 
 func TestAddExistsImutConcRand(t *testing.T) {
 
-	var err error
 	var ok bool
 	var wg sync.WaitGroup
 
@@ -108,10 +99,7 @@ func TestAddExistsImutConcRand(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		for key := range randChan {
-			_, err = mapper.Add(key, struct{}{})
-			if err != nil {
-				t.Fatal("Addition failed")
-			}
+			mapper.Add(key, struct{}{})
 		}
 	}()
 

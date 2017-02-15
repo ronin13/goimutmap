@@ -31,11 +31,10 @@ func (imap *ImutMap) runLoop() {
 		case opMsg := <-imap.cChan:
 			switch opMsg.op {
 			case ADD_KEY:
-
 				for counter := 0; counter <= len(pageList)-1; counter++ {
 					pages := pageList[counter]
 					value, exists := pages[opMsg.key]
-					if !exists || value == DELETED {
+					if !exists || (exists && value == DELETED) {
 						pages[opMsg.key] = opMsg.value
 						opMsg.ret <- retPack{nil, pages}
 						break SelAgain
@@ -59,7 +58,6 @@ func (imap *ImutMap) runLoop() {
 					}
 				}
 				opMsg.ret <- retPack{nil, nil}
-
 			case DEL_KEY:
 				for counter := len(pageList) - 1; counter >= 0; counter-- {
 					pages := pageList[counter]
@@ -68,6 +66,7 @@ func (imap *ImutMap) runLoop() {
 						if value == DELETED {
 							// Do nothing
 							log.Printf("Key %+v already deleted", opMsg.key)
+							break SelAgain
 
 						} else {
 							pages[opMsg.key] = DELETED
@@ -84,13 +83,13 @@ func (imap *ImutMap) runLoop() {
 
 // Add method allows one to add new keys.
 // Returns error.
-func (imap *ImutMap) Add(key, value interface{}) (IntfMap, error) {
+func (imap *ImutMap) Add(key, value interface{}) IntfMap {
 	iPack := &mapPack{ADD_KEY, key, value, make(chan retPack, 1)}
 	imap.cChan <- iPack
 
 	pack := <-iPack.ret
 
-	return pack.mapRef, nil
+	return pack.mapRef
 }
 
 // Exists method allows to check and return the key.

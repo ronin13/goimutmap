@@ -43,6 +43,6 @@ type contextMapper interface {
 
 type ImutMapper interface {
 	Exists(interface{}) (interface{}, bool, IntfMap)
-	Add(interface{}, interface{}) (IntfMap, error)
+	Add(interface{}, interface{}) IntfMap
 	Delete(interface{})
 }
