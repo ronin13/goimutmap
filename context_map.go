@@ -38,7 +38,6 @@ func (imap *contextMap) runLoop() {
 				}
 			case DEL_KEY:
 				delete(pages, opMsg.key)
-				opMsg.ret <- retPack{nil, nil}
 			}
 
 		}
@@ -68,7 +67,6 @@ func (imap *contextMap) Exists(key interface{}) (interface{}, bool) {
 }
 
 func (imap *contextMap) Delete(key interface{}) {
-	iPack := &mapPack{DEL_KEY, key, nil, make(chan retPack, 1)}
+	iPack := &mapPack{DEL_KEY, key, nil, nil}
 	imap.cChan <- iPack
-	_ = <-iPack.ret
 }

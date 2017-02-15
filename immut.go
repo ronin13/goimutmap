@@ -2,6 +2,7 @@ package immap
 
 import (
 	"context"
+	"log"
 )
 
 const (
@@ -33,7 +34,8 @@ func (imap *ImutMap) runLoop() {
 
 				for counter := 0; counter <= len(pageList)-1; counter++ {
 					pages := pageList[counter]
-					if _, exists := pages[opMsg.key]; !exists {
+					value, exists := pages[opMsg.key]
+					if !exists || value == DELETED {
 						pages[opMsg.key] = opMsg.value
 						opMsg.ret <- retPack{nil, pages}
 						break SelAgain
@@ -61,10 +63,16 @@ func (imap *ImutMap) runLoop() {
 			case DEL_KEY:
 				for counter := len(pageList) - 1; counter >= 0; counter-- {
 					pages := pageList[counter]
-					if _, exists := pages[opMsg.key]; exists {
-						pages[opMsg.key] = DELETED
-						opMsg.ret <- retPack{nil, nil}
-						break SelAgain
+					value, exists := pages[opMsg.key]
+					if exists {
+						if value == DELETED {
+							// Do nothing
+							log.Printf("Key %+v already deleted", opMsg.key)
+
+						} else {
+							pages[opMsg.key] = DELETED
+							break SelAgain
+						}
 					}
 				}
 
@@ -98,7 +106,6 @@ func (imap *ImutMap) Exists(key interface{}) (interface{}, bool, IntfMap) {
 }
 
 func (imap *ImutMap) Delete(key interface{}) {
-	iPack := &mapPack{DEL_KEY, key, nil, make(chan retPack, 1)}
+	iPack := &mapPack{DEL_KEY, key, nil, nil}
 	imap.cChan <- iPack
-	_ = <-iPack.ret
 }
