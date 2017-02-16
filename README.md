@@ -14,7 +14,7 @@ This library provides:
 
 1) A lockless Golang map implementing the Context interface. 
 
-2) An immutable multi-versioned map built on top of the lockless map, similarly implementing the Context interface.
+2) An immutable multi-versioned map built on top of the lockless map, similarly implementing the Context interface. (This is a Work In Progress)
 
 Supports: (with similar semantics as that of golang map)
 
@@ -24,7 +24,7 @@ b) Exists
 
 c) Delete
 
-Please refer to godoc for details.
+Please refer to [godoc](https://godoc.org/github.com/ronin13/goimutmap) for details.
 
 ## Used by
 * http://github.com/ronin13/dotler : Multiple crawler goroutines use this map to avoid duplicate crawling and for in-memory graph. 
