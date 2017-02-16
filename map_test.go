@@ -53,7 +53,7 @@ func TestAddExistsConc(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		for ind, kv := range [100]struct{}{} {
-			time.Sleep(time.Duration(rand.Intn(10)) * time.Millisecond)
+			time.Sleep(time.Duration(rand.Intn(1)) * time.Millisecond)
 			mapper.Add(ind, kv)
 		}
 	}()
@@ -63,7 +63,7 @@ func TestAddExistsConc(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		for ind, _ := range [100]struct{}{} {
-			time.Sleep(time.Duration(rand.Intn(50)) * time.Millisecond)
+			time.Sleep(time.Duration(rand.Intn(5)) * time.Millisecond)
 			if _, ok = mapper.Exists(ind); !ok {
 				t.Fatal("Key addition failed, does not exist")
 			}
