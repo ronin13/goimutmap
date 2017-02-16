@@ -5,7 +5,7 @@ import (
 )
 
 // NewcontextMapper returns a new instance of implementing contextMapper interface.
-func NewcontextMapper(ctx context.Context) (contextMapper, context.CancelFunc) {
+func NewcontextMapper(ctx context.Context) (ContextMapper, context.CancelFunc) {
 	canCtx, terminate := context.WithCancel(ctx)
 	cPack := &contextMap{canCtx, make(chan *mapPack, 1)}
 

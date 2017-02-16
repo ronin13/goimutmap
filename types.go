@@ -35,7 +35,7 @@ type mapPack struct {
 }
 
 // contextMapper implements the lockless map interface.
-type contextMapper interface {
+type ContextMapper interface {
 	Exists(interface{}) (interface{}, bool)
 	Add(interface{}, interface{}) interface{}
 	Delete(interface{})
