@@ -1,4 +1,2 @@
 package: github.com/ronin13/goimutmap
-import:
-- package: github.com/pkg/errors
-  version: ~0.8.0
+import: []
