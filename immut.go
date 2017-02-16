@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	// DELETED is a delete marker used by ImutMap.
 	DELETED = "marked as deleted"
 )
 
@@ -82,7 +83,7 @@ func (imap *ImutMap) runLoop() {
 }
 
 // Add method allows one to add new keys.
-// Returns error.
+// Returns a reference to IntfMap
 func (imap *ImutMap) Add(key, value interface{}) IntfMap {
 	iPack := &mapPack{ADD_KEY, key, value, make(chan retPack, 1)}
 	imap.cChan <- iPack
@@ -93,6 +94,7 @@ func (imap *ImutMap) Add(key, value interface{}) IntfMap {
 }
 
 // Exists method allows to check and return the key.
+// Also, returns a reference to IntfMap.
 func (imap *ImutMap) Exists(key interface{}) (interface{}, bool, IntfMap) {
 	iPack := &mapPack{CHECK_KEY, key, nil, make(chan retPack, 1)}
 	imap.cChan <- iPack
@@ -104,6 +106,7 @@ func (imap *ImutMap) Exists(key interface{}) (interface{}, bool, IntfMap) {
 	return val.value, true, val.mapRef
 }
 
+// Delete method allows to delete keys.
 func (imap *ImutMap) Delete(key interface{}) {
 	iPack := &mapPack{DEL_KEY, key, nil, nil}
 	imap.cChan <- iPack

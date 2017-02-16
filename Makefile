@@ -1,4 +1,4 @@
-.PHONY: test dep
+.PHONY: test dep test-race vet lint analyse
 
 # Credit: https://github.com/rightscale/go-boilerplate/blob/master/Makefile
 DEPEND=golang.org/x/tools/cmd/cover github.com/Masterminds/glide github.com/golang/lint/golint
@@ -10,3 +10,13 @@ dep:
 test: dep
 	go test -v
 
+test-race: dep
+	go test -race -v
+
+vet: lint
+	go vet .
+
+lint:
+	golint .
+
+analyse: vet lint
