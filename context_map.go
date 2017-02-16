@@ -16,7 +16,7 @@ func NewcontextMapper(ctx context.Context) (contextMapper, context.CancelFunc) {
 // RunLoop is the contextMapper's map requests processing loop.
 func (imap *contextMap) runLoop() {
 
-	pages := make(IntfMap)
+	interMap := make(IntfMap)
 	for {
 		select {
 		case <-imap.Done():
@@ -24,20 +24,20 @@ func (imap *contextMap) runLoop() {
 		case opMsg := <-imap.cChan:
 			switch opMsg.op {
 			case ADD_KEY:
-				if value, exists := pages[opMsg.key]; exists {
+				if value, exists := interMap[opMsg.key]; exists {
 					opMsg.ret <- retPack{value, nil}
 				} else {
-					pages[opMsg.key] = opMsg.value
+					interMap[opMsg.key] = opMsg.value
 					opMsg.ret <- retPack{nil, nil}
 				}
 			case CHECK_KEY:
-				if value, exists := pages[opMsg.key]; exists {
+				if value, exists := interMap[opMsg.key]; exists {
 					opMsg.ret <- retPack{value, nil}
 				} else {
 					opMsg.ret <- retPack{nil, nil}
 				}
 			case DEL_KEY:
-				delete(pages, opMsg.key)
+				delete(interMap, opMsg.key)
 			}
 
 		}

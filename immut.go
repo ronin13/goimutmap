@@ -21,7 +21,7 @@ func NewImutMapper(ctx context.Context) (ImutMapper, context.CancelFunc) {
 // RunLoop is the ImutMapper's map requests processing loop.
 func (imap *ImutMap) runLoop() {
 
-	pageList := make([]IntfMap, 0)
+	mapList := make([]IntfMap, 0)
 
 	for {
 	SelAgain:
@@ -31,37 +31,37 @@ func (imap *ImutMap) runLoop() {
 		case opMsg := <-imap.cChan:
 			switch opMsg.op {
 			case ADD_KEY:
-				for counter := 0; counter <= len(pageList)-1; counter++ {
-					pages := pageList[counter]
-					value, exists := pages[opMsg.key]
+				for counter := 0; counter <= len(mapList)-1; counter++ {
+					indMap := mapList[counter]
+					value, exists := indMap[opMsg.key]
 					if !exists || (exists && value == DELETED) {
-						pages[opMsg.key] = opMsg.value
-						opMsg.ret <- retPack{nil, pages}
+						indMap[opMsg.key] = opMsg.value
+						opMsg.ret <- retPack{nil, indMap}
 						break SelAgain
 					}
 				}
-				pageList = append(pageList, make(IntfMap))
-				lpage := pageList[len(pageList)-1]
+				mapList = append(mapList, make(IntfMap))
+				lpage := mapList[len(mapList)-1]
 				lpage[opMsg.key] = opMsg.value
 				opMsg.ret <- retPack{nil, lpage}
 			case CHECK_KEY:
-				for counter := len(pageList) - 1; counter >= 0; counter-- {
-					pages := pageList[counter]
-					if value, exists := pages[opMsg.key]; exists {
+				for counter := len(mapList) - 1; counter >= 0; counter-- {
+					indMap := mapList[counter]
+					if value, exists := indMap[opMsg.key]; exists {
 						if value == DELETED {
 							opMsg.ret <- retPack{nil, nil}
 							break SelAgain
 						} else {
-							opMsg.ret <- retPack{value, pages}
+							opMsg.ret <- retPack{value, indMap}
 							break SelAgain
 						}
 					}
 				}
 				opMsg.ret <- retPack{nil, nil}
 			case DEL_KEY:
-				for counter := len(pageList) - 1; counter >= 0; counter-- {
-					pages := pageList[counter]
-					value, exists := pages[opMsg.key]
+				for counter := len(mapList) - 1; counter >= 0; counter-- {
+					indMap := mapList[counter]
+					value, exists := indMap[opMsg.key]
 					if exists {
 						if value == DELETED {
 							// Do nothing
@@ -69,7 +69,7 @@ func (imap *ImutMap) runLoop() {
 							break SelAgain
 
 						} else {
-							pages[opMsg.key] = DELETED
+							indMap[opMsg.key] = DELETED
 							break SelAgain
 						}
 					}
