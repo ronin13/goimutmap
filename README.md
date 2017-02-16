@@ -8,15 +8,26 @@
 
 # goimutmap
 
+## Introduction
+
 This library provides:
 
 1) A lockless Golang map implementing the Context interface. 
-2) An immutable map built on top of 1).
+
+2) An immutable multi-versioned map built on top of the lockless map, similarly implementing the Context interface.
 
 Supports: (with similar semantics as that of golang map)
 
 a) Add
+
 b) Exists
+
 c) Delete
 
-TODO: Add more documentation.
+Please refer to godoc for details.
+
+## Used by
+* http://github.com/ronin13/dotler : Multiple crawler goroutines use this map to avoid duplicate crawling and for in-memory graph. 
+
+## Examples:
+* Usage: https://github.com/ronin13/dotler/blob/master/wire/nodemap.go#L11
