@@ -2,7 +2,6 @@ package immap
 
 import (
 	"context"
-	"log"
 )
 
 const (
@@ -24,55 +23,71 @@ func (imap *ImutMap) runLoop() {
 
 	mapList := make([]IntfMap, 0)
 
+	intMap := make(map[interface{}][]int)
+	var lastInd, lastMapInd int
+	var iPoint int
+
 	for {
 	SelAgain:
 		select {
 		case <-imap.Done():
 			return
 		case opMsg := <-imap.cChan:
+			startSlice, exists := intMap[opMsg.key]
+
+			if !exists {
+				lastInd = -1
+			} else {
+				lastInd = startSlice[len(startSlice)-1]
+			}
 			switch opMsg.op {
 			case ADD_KEY:
-				for counter := 0; counter <= len(mapList)-1; counter++ {
-					indMap := mapList[counter]
-					value, exists := indMap[opMsg.key]
-					if !exists || (exists && value == DELETED) {
-						indMap[opMsg.key] = opMsg.value
-						opMsg.ret <- retPack{nil, indMap}
-						break SelAgain
-					}
+
+				expand := false
+
+				if len(mapList) > 0 {
+					lastMapInd = len(mapList) - 1
+				} else {
+					expand = true
 				}
-				mapList = append(mapList, make(IntfMap))
-				lpage := mapList[len(mapList)-1]
+
+				lastInd = lastInd + 1
+
+				if lastInd > lastMapInd || expand {
+					mapList = append(mapList, make(IntfMap))
+					iPoint = len(mapList) - 1
+				} else {
+					iPoint = lastInd
+				}
+
+				lpage := mapList[iPoint]
 				lpage[opMsg.key] = opMsg.value
+
+				intMap[opMsg.key] = append(intMap[opMsg.key], lastInd)
+
 				opMsg.ret <- retPack{nil, lpage}
 			case CHECK_KEY:
-				for counter := len(mapList) - 1; counter >= 0; counter-- {
-					indMap := mapList[counter]
-					if value, exists := indMap[opMsg.key]; exists {
-						if value == DELETED {
-							opMsg.ret <- retPack{nil, nil}
-							break SelAgain
-						} else {
-							opMsg.ret <- retPack{value, indMap}
-							break SelAgain
-						}
+				indMap := mapList[lastInd]
+				if value, exists := indMap[opMsg.key]; exists {
+					if value == DELETED {
+						panic("DELETED value should not be here")
+					} else {
+						opMsg.ret <- retPack{value, indMap}
+						break SelAgain
 					}
 				}
 				opMsg.ret <- retPack{nil, nil}
 			case DEL_KEY:
-				for counter := len(mapList) - 1; counter >= 0; counter-- {
-					indMap := mapList[counter]
-					value, exists := indMap[opMsg.key]
-					if exists {
-						if value == DELETED {
-							// Do nothing
-							log.Printf("Key %+v already deleted", opMsg.key)
-							break SelAgain
+				indMap := mapList[lastInd]
+				value, exists := indMap[opMsg.key]
+				if exists {
+					if value == DELETED {
+						panic("DELETED value should not be here")
 
-						} else {
-							indMap[opMsg.key] = DELETED
-							break SelAgain
-						}
+					} else {
+						indMap[opMsg.key] = DELETED
+						intMap[opMsg.key] = intMap[opMsg.key][:len(intMap[opMsg.key])-1]
+						break SelAgain
 					}
 				}
 
