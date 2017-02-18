@@ -12,11 +12,11 @@
 
 This library provides:
 
-1) A lockless Golang map implementing the Context interface. 
+1) A lockless Golang map implementing the Context interface.  (ContextMapper)
 
-2) An immutable multi-versioned map built on top of the lockless map, similarly implementing the Context interface. (This is a Work In Progress)
+2) An immutable multi-versioned map built on top of the lockless map, similarly implementing the Context interface.  (ImmutMapper)
 
-Supports: (with similar semantics as that of golang map)
+### Supports: (with similar semantics as that of golang map)
 
 a) Add
 
@@ -24,10 +24,62 @@ b) Exists
 
 c) Delete
 
-Please refer to [godoc](https://godoc.org/github.com/ronin13/goimutmap) for details.
+### ContextMapper
+
+```
+type ContextMapper interface {
+	Exists(interface{}) (interface{}, bool)
+	Add(interface{}, interface{}) interface{}
+	Delete(interface{})
+}
+```
+
+As can be seen from above, it implements an interface similar to that of regular map.
+
+### ImmutMapper
+
+```
+type IntfMap map[interface{}]interface{}
+
+type ImutMapper interface {
+	Exists(interface{}) (interface{}, bool, IntfMap)
+	Add(interface{}, interface{}) IntfMap
+	Delete(interface{})
+}
+```
+
+ImmutMapper implements similar interface, except it returns a 3rd value 
+which is a `snapshot` of the map into which the operation was done.
+
+Both ContextMapper and ImmutMapper  encapsulate context.Context:
+
+```
+type baseMap struct {
+	context.Context
+	// Other internal fields
+}
+
+```
+
+and provide constructors such as:
+
+```
+NewcontextMapper(ctx context.Context) (ContextMapper, context.CancelFunc)
+```
+
+and 
+
+```
+NewImutMapper(ctx context.Context) (ImutMapper, context.CancelFunc)
+```
+
+#### Note
+The key and values inserted can by of any type and heterogenous.
+
+Please refer to [godoc](https://godoc.org/github.com/ronin13/goimutmap) for more details.
 
 ## Used by
-* http://github.com/ronin13/dotler : Multiple crawler goroutines use this map to avoid duplicate crawling and for in-memory graph. 
+* http://github.com/ronin13/dotler : Multiple crawler goroutines use ContextMapper to avoid duplicate crawling and for in-memory graph. 
 
 ## Examples:
 * Usage: https://github.com/ronin13/dotler/blob/master/wire/nodemap.go#L11

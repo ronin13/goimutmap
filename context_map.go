@@ -2,6 +2,7 @@ package immap
 
 import (
 	"context"
+	"reflect"
 )
 
 // NewcontextMapper returns a new instance of implementing contextMapper interface.
@@ -47,6 +48,14 @@ func (imap *contextMap) runLoop() {
 
 // Add method allows one to add new keys.
 func (imap *contextMap) Add(key, value interface{}) interface{} {
+
+	if key == nil {
+		panic("nil key")
+	}
+	if !reflect.TypeOf(key).Comparable() {
+		panic("key is not comparable")
+	}
+
 	iPack := &mapPack{ADD_KEY, key, value, make(chan retPack, 1)}
 	imap.cChan <- iPack
 

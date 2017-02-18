@@ -2,6 +2,7 @@ package immap
 
 import (
 	"context"
+	"reflect"
 )
 
 const (
@@ -23,17 +24,16 @@ func (imap *ImutMap) runLoop() {
 
 	mapList := make([]IntfMap, 0)
 
-	intMap := make(map[interface{}][]int)
+	bookMap := make(map[interface{}][]int)
 	var lastInd, lastMapInd int
 	var iPoint int
 
 	for {
-	SelAgain:
 		select {
 		case <-imap.Done():
 			return
 		case opMsg := <-imap.cChan:
-			startSlice, exists := intMap[opMsg.key]
+			startSlice, exists := bookMap[opMsg.key]
 
 			if !exists {
 				lastInd = -1
@@ -63,31 +63,30 @@ func (imap *ImutMap) runLoop() {
 				lpage := mapList[iPoint]
 				lpage[opMsg.key] = opMsg.value
 
-				intMap[opMsg.key] = append(intMap[opMsg.key], lastInd)
+				bookMap[opMsg.key] = append(bookMap[opMsg.key], lastInd)
 
 				opMsg.ret <- retPack{nil, lpage}
 			case CHECK_KEY:
-				indMap := mapList[lastInd]
-				if value, exists := indMap[opMsg.key]; exists {
+				intMap := mapList[lastInd]
+				if value, exists := intMap[opMsg.key]; exists {
 					if value == DELETED {
 						panic("DELETED value should not be here")
 					} else {
-						opMsg.ret <- retPack{value, indMap}
-						break SelAgain
+						opMsg.ret <- retPack{value, intMap}
 					}
+				} else {
+					opMsg.ret <- retPack{nil, nil}
 				}
-				opMsg.ret <- retPack{nil, nil}
 			case DEL_KEY:
-				indMap := mapList[lastInd]
-				value, exists := indMap[opMsg.key]
+				intMap := mapList[lastInd]
+				value, exists := intMap[opMsg.key]
 				if exists {
 					if value == DELETED {
 						panic("DELETED value should not be here")
 
 					} else {
-						indMap[opMsg.key] = DELETED
-						intMap[opMsg.key] = intMap[opMsg.key][:len(intMap[opMsg.key])-1]
-						break SelAgain
+						intMap[opMsg.key] = DELETED
+						bookMap[opMsg.key] = bookMap[opMsg.key][:len(bookMap[opMsg.key])-1]
 					}
 				}
 
@@ -100,6 +99,14 @@ func (imap *ImutMap) runLoop() {
 // Add method allows one to add new keys.
 // Returns a reference to IntfMap
 func (imap *ImutMap) Add(key, value interface{}) IntfMap {
+
+	if key == nil {
+		panic("nil key")
+	}
+	if !reflect.TypeOf(key).Comparable() {
+		panic("key is not comparable")
+	}
+
 	iPack := &mapPack{ADD_KEY, key, value, make(chan retPack, 1)}
 	imap.cChan <- iPack
 
