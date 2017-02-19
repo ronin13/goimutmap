@@ -23,9 +23,11 @@ type contextMap baseMap
 
 type ImutMap baseMap
 
+type ConImutMap baseMap
+
 type retPack struct {
 	value  interface{}
-	mapRef IntfMap
+	mapRef interface{}
 }
 
 type mapPack struct {
@@ -45,4 +47,9 @@ type ImutMapper interface {
 	Exists(interface{}) (interface{}, bool, IntfMap)
 	Add(interface{}, interface{}) IntfMap
 	Delete(interface{})
+}
+
+type ContextImutMapper interface {
+	Exists(interface{}) (interface{}, bool, ContextMapper)
+	Add(interface{}, interface{}) ContextMapper
 }

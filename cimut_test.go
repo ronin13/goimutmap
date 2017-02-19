@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var testmIntfs = []struct {
+var testcmIntfs = []struct {
 	key   interface{}
 	value interface{}
 }{
@@ -20,34 +20,31 @@ var testmIntfs = []struct {
 	{[...]int{1, 3, 4}, []byte("aaaaa")},
 }
 
-func TestAddExistsImut(t *testing.T) {
+func TestAddExistsConImut(t *testing.T) {
 
 	var ok bool
 
-	mapper, cFunc := NewImutMapper(context.Background())
+	mapper, cFunc := NewContextImutMapper(context.Background())
 	defer cFunc()
 
-	for _, kv := range testmIntfs {
+	for _, kv := range testcmIntfs {
 		mapper.Add(kv.key, kv.value)
 	}
 
-	for _, kv := range testmIntfs {
+	for _, kv := range testcmIntfs {
 		if _, ok, _ = mapper.Exists(kv.key); !ok {
 			t.Fatal("Key addition failed, does not exist")
 		}
 	}
 
-	for _, kv := range testmIntfs {
-		mapper.Delete(kv.key)
-	}
 }
 
-func TestAddExistsImutConc(t *testing.T) {
+func TestAddExistsConImutConc(t *testing.T) {
 
 	var ok bool
 	var wg sync.WaitGroup
 
-	mapper, cFunc := NewImutMapper(context.Background())
+	mapper, cFunc := NewContextImutMapper(context.Background())
 	defer cFunc()
 
 	wg.Add(1)
@@ -74,31 +71,34 @@ func TestAddExistsImutConc(t *testing.T) {
 	wg.Wait()
 }
 
-func randGenChan(rchan chan int, count, limit int) {
-	for x := 0; x < count; x++ {
-		rchan <- rand.Intn(limit)
-	}
-	close(rchan)
-}
-
-func TestAddExistsImutConcRand(t *testing.T) {
+func TestAddExistsConImutConcRand(t *testing.T) {
 
 	var ok bool
 	var wg sync.WaitGroup
 
-	mapper, cFunc := NewImutMapper(context.Background())
+	mapper, cFunc := NewContextImutMapper(context.Background())
 	defer cFunc()
 
 	count := 10000
-	limit := 3
+	limit := 50
 
 	randChan := make(chan int, count)
+	randChan2 := make(chan int, count)
 	go randGenChan(randChan, count, limit)
+	go randGenChan(randChan2, count, limit)
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
 		for key := range randChan {
+			mapper.Add(key, struct{}{})
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for key := range randChan2 {
 			mapper.Add(key, struct{}{})
 		}
 	}()

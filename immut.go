@@ -112,7 +112,7 @@ func (imap *ImutMap) Add(key, value interface{}) IntfMap {
 
 	pack := <-iPack.ret
 
-	return pack.mapRef
+	return (pack.mapRef).(IntfMap)
 }
 
 // Exists method allows to check and return the key.
@@ -125,7 +125,7 @@ func (imap *ImutMap) Exists(key interface{}) (interface{}, bool, IntfMap) {
 	if val.value == nil {
 		return nil, false, nil
 	}
-	return val.value, true, val.mapRef
+	return val.value, true, (val.mapRef).(IntfMap)
 }
 
 // Delete method allows to delete keys.
