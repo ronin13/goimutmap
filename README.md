@@ -73,6 +73,19 @@ and
 NewImutMapper(ctx context.Context) (ImutMapper, context.CancelFunc)
 ```
 
+and finally,
+
+```
+type ContextImutMapper interface {
+	Exists(interface{}) (interface{}, bool, ContextMapper)
+	Add(interface{}, interface{}) ContextMapper
+}
+```
+
+which combines both ContextMapper and ImmutMapper.
+
+
+
 #### Note
 The key and values inserted can by of any type and heterogenous.
 
