@@ -68,15 +68,11 @@ func (imap *ImutMap) runLoop() {
 				opMsg.ret <- retPack{nil, lpage}
 			case CHECK_KEY:
 				intMap := mapList[lastInd]
-				if value, exists := intMap[opMsg.key]; exists {
-					if value == DELETED {
-						panic("DELETED value should not be here")
-					} else {
-						opMsg.ret <- retPack{value, intMap}
-					}
-				} else {
-					opMsg.ret <- retPack{nil, nil}
+				value, _ := intMap[opMsg.key]
+				if value == DELETED {
+					panic("DELETED value should not be here")
 				}
+				opMsg.ret <- retPack{value, intMap}
 			case DEL_KEY:
 				intMap := mapList[lastInd]
 				value, exists := intMap[opMsg.key]
@@ -122,10 +118,11 @@ func (imap *ImutMap) Exists(key interface{}) (interface{}, bool, IntfMap) {
 	imap.cChan <- iPack
 	val := <-iPack.ret
 
-	if val.value == nil {
-		return nil, false, nil
-	}
-	return val.value, true, (val.mapRef).(IntfMap)
+	tmap := (val.mapRef).(IntfMap)
+
+	_, exists := tmap[key]
+
+	return val.value, exists, tmap
 }
 
 // Delete method allows to delete keys.
