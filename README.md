@@ -1,4 +1,4 @@
-
+[![Sourcegraph](https://sourcegraph.com/github.com/ronin13/goimutmap/-/badge.svg)](https://sourcegraph.com/github.com/ronin13/goimutmap?badge)
 [![Go Report Card](https://goreportcard.com/badge/github.com/ronin13/goimutmap)](https://goreportcard.com/report/github.com/ronin13/goimutmap)
 [![Build Status](https://travis-ci.org/ronin13/goimutmap.svg?branch=master)](https://travis-ci.org/ronin13/goimutmap)
 
