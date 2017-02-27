@@ -85,15 +85,11 @@ func (imap *ConImutMap) runLoop() {
 			case CHECK_KEY:
 
 				intMap := mapList[lastInd]
-				if value, exists := intMap.Exists(opMsg.key); exists {
-					if value == CDELETED {
-						panic("CDELETED value should not be here")
-					} else {
-						opMsg.ret <- retPack{value, intMap}
-					}
-				} else {
-					opMsg.ret <- retPack{nil, nil}
+				value, _ := intMap.Exists(opMsg.key)
+				if value == CDELETED {
+					panic("CDELETED value should not be here")
 				}
+				opMsg.ret <- retPack{value, intMap}
 
 			}
 
@@ -129,9 +125,10 @@ func (imap *ConImutMap) Exists(key interface{}) (interface{}, bool, ContextMappe
 	imap.cChan <- iPack
 	val := <-iPack.ret
 
-	if val.value == nil {
-		return nil, false, nil
-	}
-	return val.value, true, (val.mapRef).(ContextMapper)
+	tmap := (val.mapRef).(ContextMapper)
+
+	_, exists := tmap.Exists(key)
+
+	return val.value, exists, tmap
 
 }

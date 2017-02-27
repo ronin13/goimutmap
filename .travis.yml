@@ -2,10 +2,11 @@ language: go
 
 go:
   - 1.7.5
+  - 1.8
   - master
   - tip
 
 install: make dep
 
 script:
-    make test
+    make test-race
