@@ -22,7 +22,14 @@ func ExampleContextMapper() {
 		if val == nil {
 			val = make([]int, 0)
 		}
-		mapper.Add(pos, append(val.([]int), rand.Perm(10)...))
+
+		cint := val.([]int)
+
+		newslice := make([]int, len(cint))
+		copy(newslice, cint)
+		newslice = append(newslice, rand.Perm(10)...)
+
+		mapper.Add(pos, newslice)
 
 	}
 
