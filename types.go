@@ -10,6 +10,7 @@ const (
 	ADD_KEY OperType = iota
 	CHECK_KEY
 	DEL_KEY
+	ITERATE
 )
 
 type IntfMap map[interface{}]interface{}
@@ -41,6 +42,7 @@ type ContextMapper interface {
 	Exists(interface{}) (interface{}, bool)
 	Add(interface{}, interface{}) interface{}
 	Delete(interface{})
+	Iterate() <-chan retPack
 }
 
 type ImutMapper interface {

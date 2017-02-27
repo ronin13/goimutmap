@@ -28,14 +28,25 @@ func (imap *contextMap) runLoop() {
 				if value, exists := interMap[opMsg.key]; exists {
 					opMsg.ret <- retPack{value, nil}
 				} else {
-					interMap[opMsg.key] = opMsg.value
 					opMsg.ret <- retPack{nil, nil}
 				}
+				interMap[opMsg.key] = opMsg.value
 			case CHECK_KEY:
 				value, exists := interMap[opMsg.key]
 				opMsg.ret <- retPack{value, exists}
 			case DEL_KEY:
 				delete(interMap, opMsg.key)
+
+			case ITERATE:
+				retChan := make(chan retPack)
+				go func() {
+					for k, v := range interMap {
+						retChan <- retPack{k, v}
+
+					}
+					close(retChan)
+				}()
+				opMsg.ret <- retPack{retChan, nil}
 			}
 
 		}
@@ -72,4 +83,13 @@ func (imap *contextMap) Exists(key interface{}) (interface{}, bool) {
 func (imap *contextMap) Delete(key interface{}) {
 	iPack := &mapPack{DEL_KEY, key, nil, nil}
 	imap.cChan <- iPack
+}
+
+func (imap *contextMap) Iterate() <-chan retPack {
+
+	iPack := &mapPack{ITERATE, nil, nil, make(chan retPack, 1)}
+	imap.cChan <- iPack
+	val := <-iPack.ret
+
+	return val.value.(chan retPack)
 }
