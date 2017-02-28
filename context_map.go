@@ -38,10 +38,10 @@ func (imap *contextMap) runLoop() {
 				delete(interMap, opMsg.key)
 
 			case ITERATE:
-				retChan := make(chan retPack)
+				retChan := make(chan IterMap)
 				go func() {
 					for k, v := range interMap {
-						retChan <- retPack{k, v}
+						retChan <- IterMap{k, v}
 
 					}
 					close(retChan)
@@ -85,11 +85,11 @@ func (imap *contextMap) Delete(key interface{}) {
 	imap.cChan <- iPack
 }
 
-func (imap *contextMap) Iterate() <-chan retPack {
+func (imap *contextMap) Iterate() <-chan IterMap {
 
 	iPack := &mapPack{ITERATE, nil, nil, make(chan retPack, 1)}
 	imap.cChan <- iPack
 	val := <-iPack.ret
 
-	return val.value.(chan retPack)
+	return val.value.(chan IterMap)
 }

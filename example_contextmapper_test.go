@@ -42,7 +42,7 @@ func ExampleContextMapper() {
 
 	counter := 0
 	for mb := range mapper.Iterate() {
-		counter += mb.value.(int)
+		counter += mb.key.(int)
 		//fmt.Println(mb.mapRef.([]int))
 	}
 	fmt.Println("Sum of all keys", counter)

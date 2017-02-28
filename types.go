@@ -31,6 +31,10 @@ type retPack struct {
 	mapRef interface{}
 }
 
+type IterMap struct {
+	key, value interface{}
+}
+
 type mapPack struct {
 	op         OperType
 	key, value interface{}
@@ -42,7 +46,7 @@ type ContextMapper interface {
 	Exists(interface{}) (interface{}, bool)
 	Add(interface{}, interface{}) interface{}
 	Delete(interface{})
-	Iterate() <-chan retPack
+	Iterate() <-chan IterMap
 }
 
 type ImutMapper interface {
